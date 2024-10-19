@@ -4,9 +4,7 @@ import requests
 
 with open('test.py', 'rb') as f:
     data = f.read()
-
 fb64 = base64.b64encode(data).decode('utf-8')
-
 payload = {
     'name': 'test.py',
     'data': fb64
