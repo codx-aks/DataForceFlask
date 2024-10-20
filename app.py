@@ -13,6 +13,7 @@ matplotlib.use('Agg')
 
 import matplotlib.pyplot as plt
 import seaborn as sns
+import google.generativeai as genai
 
 app = Flask(__name__)
 
@@ -96,6 +97,7 @@ def train_model(mpath, dpath):
         'recall': recall
     }
 
+
     plot_confusion_matrix(cm)
     plot_metrics(metrics)
 
@@ -109,14 +111,32 @@ def train_model(mpath, dpath):
     cmb64 = base64.b64encode(cmbin).decode('utf-8')
     mb64 = base64.b64encode(mbin).decode('utf-8')
 
+
     os.remove(trained_model_path)
     os.remove(dpath)
     os.remove(mpath)
     # os.remove('confusion_matrix.png')
     # os.remove('metrics.png')
-    return jsonify({'message': 'Model has been trained successfully', 'model': modelb64}), 200
+    return jsonify({'message': 'Model has been trained successfully', 'model': modelb64 ,'cm':cmb64,'mg':mb64}), 200
 
+@app.route('/model-imp', methods=['POST'])
+def model_imp():
+    data = request.get_json()
+    dname = data.get('dname')
+    ddata = data.get('ddata')
 
+    dbin = base64.b64decode(ddata)
+    dpath = os.path.join(app.config['DATA_FOLDER'], dname)
+    with open(dpath, 'wb') as f:
+        f.write(dbin)
+
+    dataset = pd.read_csv(dpath)
+
+    genai.configure(api_key=os.getenv("GEMINI_API_KEY"))
+    model = genai.GenerativeModel("gemini-1.5-flash")
+    response = model.generate_content(f"recommend ml model structure usage in maximum 50 words for this type of data {dataset.head()}")
+    print(response.text)
+    return response.text
 def plot_confusion_matrix(cm):
     plt.figure(figsize=(10, 7))
 
@@ -169,5 +189,5 @@ def load_model_from_py(filepath):
     return module
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    app.run(port=5001, debug=True)
 

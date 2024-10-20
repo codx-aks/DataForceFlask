@@ -13,9 +13,17 @@ db64 = base64.b64encode(data2).decode('utf-8')
 payload = {
     'fname': 'test.py',
     'fdata': fb64,
-    'dname': 'ldata_demo.csv',
+    'dname': 'data_demo.csv',
     'ddata': db64
 }
 
-response = requests.post('http://127.0.0.1:5000/train-model', json=payload)
-print(response.json())
+response = requests.post(url='http://127.0.0.1:5001/train-model', json=payload)
+print(response.text)
+
+payload = {
+    'dname': 'data_demo.csv',
+    'ddata': db64
+}
+
+response = requests.post(url='http://127.0.0.1:5001/model-imp', json=payload)
+print(response.text)
